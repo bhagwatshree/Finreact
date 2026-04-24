@@ -30,7 +30,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.Collection;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
-import org.apache.fineract.command.core.CommandPipeline;
+import org.apache.fineract.command.core.CommandDispatcher;
 import org.apache.fineract.infrastructure.cache.command.CacheSwitchCommand;
 import org.apache.fineract.infrastructure.cache.data.CacheData;
 import org.apache.fineract.infrastructure.cache.data.CacheSwitchRequest;
@@ -40,7 +40,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Path("/v1/caches")
-@Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Component
 @Tag(name = "Cache", description = """
@@ -57,7 +56,7 @@ public class CacheApiResource {
 
     @Qualifier("runtimeDelegatingCacheManager")
     private final RuntimeDelegatingCacheManager cacheService;
-    private final CommandPipeline commandPipeline;
+    private final CommandDispatcher dispatcher;
 
     @GET
     @Operation(summary = "Retrieve Cache Types", description = """
@@ -72,13 +71,14 @@ public class CacheApiResource {
     }
 
     @PUT
+    @Consumes({ MediaType.APPLICATION_JSON })
     @Operation(summary = "Switch Cache", description = "Switches the cache to chosen one.")
     public CacheSwitchResponse switchCache(@Valid CacheSwitchRequest request) {
         final var command = new CacheSwitchCommand();
 
         command.setPayload(request);
 
-        final Supplier<CacheSwitchResponse> response = commandPipeline.send(command);
+        final Supplier<CacheSwitchResponse> response = dispatcher.dispatch(command);
 
         return response.get();
     }

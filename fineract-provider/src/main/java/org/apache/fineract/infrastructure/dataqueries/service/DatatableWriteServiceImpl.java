@@ -64,11 +64,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.fineract.infrastructure.codes.service.CodeReadPlatformService;
@@ -311,7 +311,10 @@ public class DatatableWriteServiceImpl implements DatatableWriteService {
             baseDataValidator.throwValidationErrors();
         }
 
-        return new CommandProcessingResultBuilder().withCommandId(command.commandId()).withResourceIdAsString(datatableName).build();
+        return new CommandProcessingResultBuilder() //
+                .withCommandId(command.commandId()) //
+                .withResourceIdAsString(datatableName) //
+                .build();
     }
 
     @Transactional
@@ -921,7 +924,7 @@ public class DatatableWriteServiceImpl implements DatatableWriteService {
         } catch (final EmptyResultDataAccessException e) {
             log.warn("Error occurred.", e);
         }
-        return ObjectUtils.defaultIfNull(codeId, 0);
+        return Objects.requireNonNullElse(codeId, 0);
     }
 
     /**
@@ -1274,7 +1277,8 @@ public class DatatableWriteServiceImpl implements DatatableWriteService {
                 dataObjectParams);
         businessEventNotifierService.notifyPostBusinessEvent(new DatatableEntryUpdatedBusinessEvent(datatableEntryDetails));
 
-        return new CommandProcessingResultBuilder().withCommandId(command.commandId()) //
+        return new CommandProcessingResultBuilder() //
+                .withCommandId(command.commandId()) //
                 .withEntityId(primaryKey) //
                 .withOfficeId(commandProcessingResult.getOfficeId()) //
                 .withGroupId(commandProcessingResult.getGroupId()) //
@@ -1282,7 +1286,8 @@ public class DatatableWriteServiceImpl implements DatatableWriteService {
                 .withSavingsId(commandProcessingResult.getSavingsId()) //
                 .withLoanId(commandProcessingResult.getLoanId()) //
                 .withTransactionId(commandProcessingResult.getTransactionId()) //
-                .with(changes).build();
+                .with(changes) //
+                .build();
     }
 
     private static boolean isUserUpdatable(@NonNull EntityTables entityTable, @NonNull ResultsetColumnHeaderData columnHeader) {

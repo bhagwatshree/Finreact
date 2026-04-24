@@ -29,6 +29,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.fineract.client.feign.ObjectMapperFactory;
 import org.apache.fineract.client.models.PostWorkingCapitalLoanProductsRequest;
+import org.apache.fineract.client.models.PostWorkingCapitalLoanProductsRequest.AccountingRuleEnum;
 import org.apache.fineract.client.models.PutWorkingCapitalLoanProductsProductIdRequest;
 import org.apache.fineract.portfolio.workingcapitalloan.domain.WorkingCapitalLoanPeriodFrequencyType;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalAmortizationType;
@@ -48,6 +49,7 @@ public class WorkingCapitalLoanProductTestBuilder {
     private static final Integer DEFAULT_PERIOD_PAYMENT_FREQUENCY = 30;
     private static final String DEFAULT_PERIOD_PAYMENT_FREQUENCY_TYPE = WorkingCapitalLoanPeriodFrequencyType.DAYS.name();
     private static final List<String> DEFAULT_PAYMENT_ALLOCATION_TYPES = List.of("PENALTY", "FEE", "PRINCIPAL");
+    private static final AccountingRuleEnum DEFAULT_ACCOUNTING_RULE = AccountingRuleEnum.NONE;
 
     private String name = DEFAULT_NAME;
     private String shortName = DEFAULT_SHORT_NAME;
@@ -69,8 +71,12 @@ public class WorkingCapitalLoanProductTestBuilder {
     private BigDecimal discount;
     private Integer repaymentEvery = DEFAULT_PERIOD_PAYMENT_FREQUENCY;
     private String repaymentFrequencyType = DEFAULT_PERIOD_PAYMENT_FREQUENCY_TYPE;
+    private Long breachId;
     private List<String> paymentAllocationTypes = DEFAULT_PAYMENT_ALLOCATION_TYPES;
     private Map<String, Boolean> allowAttributeOverrides;
+    private Integer delinquencyGraceDays;
+    private String delinquencyStartType;
+    private AccountingRuleEnum accountingRule = DEFAULT_ACCOUNTING_RULE;
 
     public WorkingCapitalLoanProductTestBuilder withName(final String name) {
         this.name = name;
@@ -177,8 +183,28 @@ public class WorkingCapitalLoanProductTestBuilder {
         return this;
     }
 
+    public WorkingCapitalLoanProductTestBuilder withBreachId(final Long breachId) {
+        this.breachId = breachId;
+        return this;
+    }
+
     public WorkingCapitalLoanProductTestBuilder withAllowAttributeOverrides(final Map<String, Boolean> allowAttributeOverrides) {
         this.allowAttributeOverrides = allowAttributeOverrides;
+        return this;
+    }
+
+    public WorkingCapitalLoanProductTestBuilder withDelinquencyGraceDays(final Integer delinquencyGraceDays) {
+        this.delinquencyGraceDays = delinquencyGraceDays;
+        return this;
+    }
+
+    public WorkingCapitalLoanProductTestBuilder withDelinquencyStartType(final String delinquencyStartType) {
+        this.delinquencyStartType = delinquencyStartType;
+        return this;
+    }
+
+    public WorkingCapitalLoanProductTestBuilder withAccountingRule(final AccountingRuleEnum accountingRule) {
+        this.accountingRule = accountingRule;
         return this;
     }
 
@@ -224,6 +250,10 @@ public class WorkingCapitalLoanProductTestBuilder {
             request.setRepaymentFrequencyType(
                     PostWorkingCapitalLoanProductsRequest.RepaymentFrequencyTypeEnum.valueOf(this.repaymentFrequencyType));
         }
+        request.setDelinquencyGraceDays(this.delinquencyGraceDays);
+        request.setDelinquencyStartType(this.delinquencyStartType);
+        request.setBreachId(this.breachId);
+        request.setAccountingRule(this.accountingRule);
         request.setLocale("en_US");
         request.setDateFormat("yyyy-MM-dd");
     }
@@ -252,6 +282,12 @@ public class WorkingCapitalLoanProductTestBuilder {
         if (this.repaymentFrequencyType != null) {
             request.setRepaymentFrequencyType(
                     PutWorkingCapitalLoanProductsProductIdRequest.RepaymentFrequencyTypeEnum.valueOf(this.repaymentFrequencyType));
+        }
+        request.setDelinquencyGraceDays(this.delinquencyGraceDays);
+        request.setDelinquencyStartType(this.delinquencyStartType);
+        request.setBreachId(this.breachId);
+        if (this.accountingRule != null) {
+            request.setAccountingRule(PutWorkingCapitalLoanProductsProductIdRequest.AccountingRuleEnum.valueOf(this.accountingRule.name()));
         }
         request.setLocale("en_US");
         request.setDateFormat("yyyy-MM-dd");

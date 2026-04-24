@@ -233,6 +233,13 @@ class WorkingCapitalLoanProductDataValidatorTest {
         assertThrows(PlatformApiDataValidationException.class, () -> validator.validateForCreate(json));
     }
 
+    @Test
+    void testValidateForCreate_WithInvalidBreachId_ShouldThrowException() {
+        final JsonObject jsonObject = createBaseJsonObject();
+        jsonObject.addProperty(WorkingCapitalLoanProductConstants.breachIdParamName, 0);
+        assertThrows(PlatformApiDataValidationException.class, () -> validator.validateForCreate(jsonObject.toString()));
+    }
+
     // Helper methods
 
     private JsonObject createBaseJsonObject() {
@@ -248,6 +255,7 @@ class WorkingCapitalLoanProductDataValidatorTest {
         jsonObject.addProperty(WorkingCapitalLoanProductConstants.periodPaymentRateParamName, 1.0);
         jsonObject.addProperty(WorkingCapitalLoanProductConstants.repaymentEveryParamName, 30);
         jsonObject.addProperty(WorkingCapitalLoanProductConstants.repaymentFrequencyTypeParamName, "DAYS");
+        jsonObject.addProperty(WorkingCapitalLoanProductConstants.accountingRuleParamName, "NONE");
         jsonObject.add(WorkingCapitalLoanProductConstants.paymentAllocationParamName, createDefaultPaymentAllocationJson());
         return jsonObject;
     }

@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
@@ -30,6 +29,7 @@ import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.portfolio.workingcapitalloan.domain.WorkingCapitalLoanPeriodFrequencyType;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.WorkingCapitalLoanProductConstants;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalAmortizationType;
+import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalLoanDelinquencyStartType;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalLoanProduct;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalLoanProductConfigurableAttributes;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalLoanProductMinMaxConstraints;
@@ -121,6 +121,21 @@ public class WorkingCapitalLoanProductUpdateUtil {
             changes.put(WorkingCapitalLoanProductConstants.discountParamName, newValue);
             relatedDetail.setDiscount(newValue);
         }
+        if (command.isChangeInIntegerParameterNamed(WorkingCapitalLoanProductConstants.delinquencyGraceDaysParamName,
+                relatedDetail.getDelinquencyGraceDays())) {
+            final Integer newValue = command.integerValueOfParameterNamed(WorkingCapitalLoanProductConstants.delinquencyGraceDaysParamName);
+            changes.put(WorkingCapitalLoanProductConstants.delinquencyGraceDaysParamName, newValue);
+            relatedDetail.setDelinquencyGraceDays(newValue);
+        }
+        final String currentDelinquencyStartType = (relatedDetail.getDelinquencyStartType() != null)
+                ? relatedDetail.getDelinquencyStartType().name()
+                : null;
+        if (command.isChangeInStringParameterNamed(WorkingCapitalLoanProductConstants.delinquencyStartTypeParamName,
+                currentDelinquencyStartType)) {
+            final String newValue = command.stringValueOfParameterNamed(WorkingCapitalLoanProductConstants.delinquencyStartTypeParamName);
+            changes.put(WorkingCapitalLoanProductConstants.delinquencyStartTypeParamName, newValue);
+            relatedDetail.setDelinquencyStartType(WorkingCapitalLoanDelinquencyStartType.fromString(newValue));
+        }
         return changes;
     }
 
@@ -170,13 +185,15 @@ public class WorkingCapitalLoanProductUpdateUtil {
                     .getAsJsonObject(WorkingCapitalLoanProductConstants.allowAttributeOverridesParamName);
             if (allowOverrides != null && !allowOverrides.isJsonNull()) {
                 updateBooleanField(allowOverrides, WorkingCapitalLoanProductConstants.delinquencyBucketClassificationOverridableParamName,
-                        config::setDelinquencyBucketClassification, config::getDelinquencyBucketClassification, changes);
+                        config::setDelinquencyBucketClassification, config::isDelinquencyBucketClassification, changes);
+                updateBooleanField(allowOverrides, WorkingCapitalLoanProductConstants.breachOverridableParamName, config::setBreach,
+                        config::isBreach, changes);
                 updateBooleanField(allowOverrides, WorkingCapitalLoanProductConstants.discountDefaultOverridableParamName,
-                        config::setDiscountDefault, config::getDiscountDefault, changes);
+                        config::setDiscountDefault, config::isDiscountDefault, changes);
                 updateBooleanField(allowOverrides, WorkingCapitalLoanProductConstants.periodPaymentFrequencyOverridableParamName,
-                        config::setPeriodPaymentFrequency, config::getPeriodPaymentFrequency, changes);
+                        config::setPeriodPaymentFrequency, config::isPeriodPaymentFrequency, changes);
                 updateBooleanField(allowOverrides, WorkingCapitalLoanProductConstants.periodPaymentFrequencyTypeOverridableParamName,
-                        config::setPeriodPaymentFrequencyType, config::getPeriodPaymentFrequencyType, changes);
+                        config::setPeriodPaymentFrequencyType, config::isPeriodPaymentFrequencyType, changes);
             }
         }
         return changes;
@@ -184,9 +201,9 @@ public class WorkingCapitalLoanProductUpdateUtil {
 
     private static void updateBooleanField(final JsonObject allowOverrides, final String paramName, final Consumer<Boolean> setter,
             final Supplier<Boolean> getter, final Map<String, Object> changes) {
-        if (allowOverrides.has(paramName)) {
-            final Boolean newValue = allowOverrides.get(paramName).getAsBoolean();
-            if (!Objects.equals(getter.get(), newValue)) {
+        if (allowOverrides.has(paramName) && !allowOverrides.get(paramName).isJsonNull()) {
+            final boolean newValue = allowOverrides.get(paramName).getAsBoolean();
+            if (getter.get() != newValue) {
                 changes.put(paramName, newValue);
                 setter.accept(newValue);
             }

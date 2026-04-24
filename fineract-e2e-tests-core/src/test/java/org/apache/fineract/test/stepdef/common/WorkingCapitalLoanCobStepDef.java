@@ -44,12 +44,13 @@ import org.apache.fineract.client.models.IsCatchUpRunningDTO;
 import org.apache.fineract.client.models.OldestCOBProcessedLoanDTO;
 import org.apache.fineract.client.models.PostClientsResponse;
 import org.apache.fineract.client.models.PostWorkingCapitalLoanProductsResponse;
+import org.apache.fineract.client.models.PostWorkingCapitalLoansResponse;
 import org.apache.fineract.test.data.LoanStatus;
 import org.apache.fineract.test.helper.BusinessDateHelper;
 import org.apache.fineract.test.helper.WorkingCapitalLoanTestHelper;
-import org.apache.fineract.test.messaging.config.JobPollingProperties;
 import org.apache.fineract.test.stepdef.AbstractStepDef;
 import org.apache.fineract.test.support.TestContextKey;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
@@ -61,8 +62,6 @@ public class WorkingCapitalLoanCobStepDef extends AbstractStepDef {
     private WorkingCapitalLoanTestHelper wcLoanHelper;
     @Autowired
     private FineractFeignClient fineractClient;
-    @Autowired
-    private JobPollingProperties jobPollingProperties;
 
     @Before(value = "@WCCOBFeature")
     public void beforeWcCobScenario() {
@@ -77,7 +76,7 @@ public class WorkingCapitalLoanCobStepDef extends AbstractStepDef {
             log.debug("After hook: cleaning up {} WC loan(s)", loanIds.size());
             for (Long loanId : loanIds) {
                 try {
-                    wcLoanHelper.deleteById(loanId);
+                    // wcLoanHelper.deleteById(loanId);
                     log.debug("After hook: deleted WC loan id={}", loanId);
                 } catch (Exception e) {
                     log.warn("After hook: failed to delete WC loan id={}: {}", loanId, e.getMessage());
@@ -90,6 +89,17 @@ public class WorkingCapitalLoanCobStepDef extends AbstractStepDef {
     @When("Admin runs inline COB job for Working Capital Loan")
     public void runWorkingCapitalInlineCOB() throws IOException {
         InlineJobRequest inlineJobRequest = new InlineJobRequest().addLoanIdsItem(getTrackedLoanIds().getLast());
+        ok(() -> fineractClient.inlineJob().executeInlineJob("WC_LOAN_COB", inlineJobRequest));
+    }
+
+    @When("Admin runs inline COB job for Working Capital Loan by loanId")
+    public void runWorkingCapitalInlineCOBByLoanId() throws IOException {
+        PostWorkingCapitalLoansResponse loanResponse = testContext().get(TestContextKey.LOAN_CREATE_RESPONSE);
+        Assertions.assertNotNull(loanResponse);
+        long loanId = loanResponse.getLoanId();
+
+        InlineJobRequest inlineJobRequest = new InlineJobRequest().addLoanIdsItem(loanId);
+
         ok(() -> fineractClient.inlineJob().executeInlineJob("WC_LOAN_COB", inlineJobRequest));
     }
 
@@ -230,29 +240,42 @@ public class WorkingCapitalLoanCobStepDef extends AbstractStepDef {
 
     @When("Admin checks that WC Loan COB is running until the current business date")
     public void checkWCLoanCOBCatchUpRunningUntilCOBBusinessDate() {
-        await().atMost(Duration.ofMillis(jobPollingProperties.getTimeoutInMillis())) //
-                .pollInterval(Duration.ofMillis(jobPollingProperties.getIntervalInMillis())) //
+        // Resolve the expected completion date upfront, before the async job potentially finishes.
+        // COB catch-up processes every day from the oldest lastClosedBusinessDate up to cobBusinessDate.
+        // When complete, cobProcessedDate (the oldest loan's lastClosedBusinessDate) will equal cobBusinessDate.
+        BusinessDateResponse businessDateResponse = ok(
+                () -> fineractClient.businessDateManagement().getBusinessDate(BusinessDateHelper.COB, Map.of()));
+        LocalDate expectedCompletionDate = businessDateResponse.getDate();
+
+        // Single-phase polling: handles both the case where the job is still running AND where it
+        // already finished before this polling loop started (race condition with async execution).
+        // Bug fix #1: removed Phase 1 "wait until running" which timed out when the job completed
+        // too quickly for the poll to catch isCatchUpRunning = true.
+        // Bug fix #2: use cobProcessedDate (oldest loan's lastClosedBusinessDate) instead of
+        // cobBusinessDate (which is always == current COB date, making the check vacuous).
+        await() //
+                .atMost(Duration.ofMinutes(4)) //
+                .pollInterval(Duration.ofSeconds(5)) //
+                .pollDelay(Duration.ofSeconds(2)) //
                 .until(() -> {
-                    IsCatchUpRunningDTO isCatchUpRunningResponse = ok(
-                            () -> fineractClient.workingCapitalLoanCobCatchUpApi().isCatchUpRunning1());
-                    return isCatchUpRunningResponse.getCatchUpRunning();
+                    IsCatchUpRunningDTO statusResponse = ok(() -> fineractClient.workingCapitalLoanCobCatchUpApi().isCatchUpRunning1());
+
+                    if (statusResponse.getCatchUpRunning()) {
+                        log.debug("WC COB catch-up still running, waiting...");
+                        return false;
+                    }
+
+                    // Catch-up not running — check whether it processed all days up to the expected date.
+                    // cobProcessedDate = the oldest loan's lastClosedBusinessDate after the last COB run.
+                    OldestCOBProcessedLoanDTO catchUpStatus = ok(
+                            () -> fineractClient.workingCapitalLoanCobCatchUpApi().getOldestCOBProcessedLoan1());
+                    LocalDate cobProcessedDate = catchUpStatus.getCobProcessedDate();
+
+                    boolean catchUpComplete = !cobProcessedDate.isBefore(expectedCompletionDate);
+                    log.debug("WC COB catch-up complete check: cobProcessedDate={}, expectedCompletionDate={}, complete={}",
+                            cobProcessedDate, expectedCompletionDate, catchUpComplete);
+                    return catchUpComplete;
                 });
-        // Then wait for catch-up to complete
-        await().atMost(Duration.ofMinutes(4)).pollInterval(Duration.ofSeconds(5)).pollDelay(Duration.ofSeconds(5)).until(() -> {
-            IsCatchUpRunningDTO statusResponse = ok(() -> fineractClient.workingCapitalLoanCobCatchUpApi().isCatchUpRunning1());
-            if (!statusResponse.getCatchUpRunning()) {
-                BusinessDateResponse businessDateResponse = ok(
-                        () -> fineractClient.businessDateManagement().getBusinessDate(BusinessDateHelper.COB, Map.of()));
-                LocalDate currentBusinessDate = businessDateResponse.getDate();
-
-                OldestCOBProcessedLoanDTO catchUpResponse = ok(
-                        () -> fineractClient.workingCapitalLoanCobCatchUpApi().getOldestCOBProcessedLoan1());
-                LocalDate lastClosedDate = catchUpResponse.getCobBusinessDate();
-
-                return !lastClosedDate.isBefore(currentBusinessDate);
-            }
-            return false;
-        });
     }
 
     @SuppressWarnings("unchecked")

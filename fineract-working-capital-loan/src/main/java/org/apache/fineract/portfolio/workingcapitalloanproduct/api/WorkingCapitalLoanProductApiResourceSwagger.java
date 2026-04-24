@@ -22,10 +22,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.data.StringEnumOptionData;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.portfolio.fund.data.FundData;
+import org.apache.fineract.portfolio.workingcapitalloanbreach.data.WorkingCapitalBreachData;
 
 /**
  * Swagger documentation classes for Working Capital Loan Products API.
@@ -93,9 +96,53 @@ public final class WorkingCapitalLoanProductApiResourceSwagger {
         public Integer repaymentEvery;
         @Schema(example = "DAYS", allowableValues = { "DAYS", "MONTHS", "YEARS" })
         public String repaymentFrequencyType;
+        @Schema(example = "1")
+        public Long breachId;
+        @Schema(example = "1")
+        public Integer delinquencyGraceDays;
+        @Schema(example = "LOAN_CREATION", description = "Delinquency start type: LOAN_CREATION or DISBURSEMENT")
+        public String delinquencyStartType;
 
         // Configurable attributes
         public PostAllowAttributeOverrides allowAttributeOverrides;
+
+        // Accounting
+        @Schema(example = "CASH_BASED", description = "NONE or CASH_BASED", allowableValues = { "NONE", "CASH_BASED" })
+        public String accountingRule;
+        @Schema(example = "1")
+        public Long fundSourceAccountId;
+        @Schema(example = "2")
+        public Long loanPortfolioAccountId;
+        @Schema(example = "3")
+        public Long transfersInSuspenseAccountId;
+        @Schema(example = "4")
+        public Long deferredIncomeLiabilityAccountId;
+        @Schema(example = "5")
+        public Long incomeFromDiscountFeeAccountId;
+        @Schema(example = "6")
+        public Long incomeFromFeeAccountId;
+        @Schema(example = "6")
+        public Long incomeFromPenaltyAccountId;
+        @Schema(example = "7")
+        public Long incomeFromRecoveryAccountId;
+        @Schema(example = "8")
+        public Long writeOffAccountId;
+        @Schema(example = "9")
+        public Long overpaymentLiabilityAccountId;
+        @Schema(example = "10")
+        public Long incomeFromChargeOffFeesAccountId;
+        @Schema(example = "11")
+        public Long incomeFromChargeOffPenaltyAccountId;
+        @Schema(example = "12")
+        public Long incomeFromGoodwillCreditFeesAccountId;
+        @Schema(example = "13")
+        public Long incomeFromGoodwillCreditPenaltyAccountId;
+        @Schema(example = "16")
+        public Long goodwillCreditAccountId;
+        @Schema(example = "17")
+        public Long chargeOffExpenseAccountId;
+        @Schema(example = "18")
+        public Long chargeOffFraudExpenseAccountId;
 
         @Schema(example = "en_GB")
         public String locale;
@@ -132,6 +179,8 @@ public final class WorkingCapitalLoanProductApiResourceSwagger {
 
             @Schema(example = "true")
             public Boolean delinquencyBucketClassification;
+            @Schema(example = "true")
+            public Boolean breach;
             @Schema(example = "true")
             public Boolean discountDefault;
             @Schema(example = "true")
@@ -204,9 +253,18 @@ public final class WorkingCapitalLoanProductApiResourceSwagger {
         @Schema(example = "30")
         public Integer repaymentEvery;
         public StringEnumOptionData repaymentFrequencyType;
+        @Schema(description = "Working capital breach (1:1 parity with delinquencyBucket)")
+        public GetWorkingCapitalLoanBreach breach;
+        @Schema(example = "1")
+        public Integer delinquencyGraceDays;
+        public StringEnumOptionData delinquencyStartType;
 
         // Configurable attributes
         public GetConfigurableAttributes allowAttributeOverrides;
+
+        // Accounting
+        public StringEnumOptionData accountingRule;
+        public Map<String, GLAccountData> accountingMappings;
 
         @Schema(description = "GetDelinquencyBucket")
         public static final class GetDelinquencyBucket {
@@ -233,6 +291,23 @@ public final class WorkingCapitalLoanProductApiResourceSwagger {
                 @Schema(example = "15")
                 public Integer maximumAgeDays;
             }
+        }
+
+        @Schema(description = "GetWorkingCapitalLoanBreach")
+        public static final class GetWorkingCapitalLoanBreach {
+
+            private GetWorkingCapitalLoanBreach() {}
+
+            @Schema(example = "1")
+            public Long id;
+            @Schema(example = "Default WCL Breach")
+            public String name;
+            @Schema(example = "30")
+            public Integer breachFrequency;
+            public StringEnumOptionData breachFrequencyType;
+            public StringEnumOptionData breachAmountCalculationType;
+            @Schema(example = "10.0")
+            public BigDecimal breachAmount;
         }
 
         @Schema(description = "GetPaymentAllocation")
@@ -264,6 +339,8 @@ public final class WorkingCapitalLoanProductApiResourceSwagger {
             @Schema(example = "true")
             public Boolean delinquencyBucketClassification;
             @Schema(example = "true")
+            public Boolean breach;
+            @Schema(example = "true")
             public Boolean discountDefault;
             @Schema(example = "true")
             public Boolean periodPaymentFrequency;
@@ -281,9 +358,14 @@ public final class WorkingCapitalLoanProductApiResourceSwagger {
         public List<CurrencyData> currencyOptions;
         public List<StringEnumOptionData> amortizationTypeOptions;
         public List<StringEnumOptionData> periodFrequencyTypeOptions;
+        public List<WorkingCapitalBreachData> breachOptions;
         public List<StringEnumOptionData> advancedPaymentAllocationTypes;
+        public List<StringEnumOptionData> delinquencyStartTypeOptions;
+        public List<StringEnumOptionData> delinquencyMinimumPaymentTypeOptions;
         public List<EnumOptionData> advancedPaymentAllocationTransactionTypes;
         public List<GetWorkingCapitalLoanProductsResponse.GetDelinquencyBucket> delinquencyBucketOptions;
+        public List<StringEnumOptionData> accountingRuleOptions;
+        public Map<String, Object> accountingMappingOptions;
     }
 
     @Schema(description = "GetWorkingCapitalLoanProductsProductIdResponse")
@@ -340,9 +422,18 @@ public final class WorkingCapitalLoanProductApiResourceSwagger {
         @Schema(example = "30")
         public Integer repaymentEvery;
         public StringEnumOptionData repaymentFrequencyType;
+        @Schema(description = "Working capital breach (1:1 parity with delinquencyBucket)")
+        public GetWorkingCapitalLoanProductsResponse.GetWorkingCapitalLoanBreach breach;
+        @Schema(example = "1")
+        public Integer delinquencyGraceDays;
+        public StringEnumOptionData delinquencyStartType;
 
         // Configurable attributes
         public GetWorkingCapitalLoanProductsResponse.GetConfigurableAttributes allowAttributeOverrides;
+
+        // Accounting
+        public StringEnumOptionData accountingRule;
+        public Map<String, GLAccountData> accountingMappings;
     }
 
     @Schema(description = "PutWorkingCapitalLoanProductsProductIdRequest")
@@ -404,9 +495,53 @@ public final class WorkingCapitalLoanProductApiResourceSwagger {
         public Integer repaymentEvery;
         @Schema(example = "DAYS", allowableValues = { "DAYS", "MONTHS", "YEARS" })
         public String repaymentFrequencyType;
+        @Schema(example = "1")
+        public Long breachId;
+        @Schema(example = "1")
+        public Integer delinquencyGraceDays;
+        @Schema(example = "LOAN_CREATION", description = "Delinquency start type: LOAN_CREATION or DISBURSEMENT")
+        public String delinquencyStartType;
 
         // Configurable attributes
         public PostWorkingCapitalLoanProductsRequest.PostAllowAttributeOverrides allowAttributeOverrides;
+
+        // Accounting
+        @Schema(example = "CASH_BASED", description = "NONE or CASH_BASED", allowableValues = { "NONE", "CASH_BASED" })
+        public String accountingRule;
+        @Schema(example = "1")
+        public Long fundSourceAccountId;
+        @Schema(example = "2")
+        public Long loanPortfolioAccountId;
+        @Schema(example = "3")
+        public Long transfersInSuspenseAccountId;
+        @Schema(example = "4")
+        public Long deferredIncomeLiabilityAccountId;
+        @Schema(example = "5")
+        public Long incomeFromDiscountFeeAccountId;
+        @Schema(example = "6")
+        public Long incomeFromFeeAccountId;
+        @Schema(example = "6")
+        public Long incomeFromPenaltyAccountId;
+        @Schema(example = "7")
+        public Long incomeFromRecoveryAccountId;
+        @Schema(example = "8")
+        public Long writeOffAccountId;
+        @Schema(example = "9")
+        public Long overpaymentLiabilityAccountId;
+        @Schema(example = "10")
+        public Long incomeFromChargeOffFeesAccountId;
+        @Schema(example = "11")
+        public Long incomeFromChargeOffPenaltyAccountId;
+        @Schema(example = "12")
+        public Long incomeFromGoodwillCreditFeesAccountId;
+        @Schema(example = "13")
+        public Long incomeFromGoodwillCreditPenaltyAccountId;
+        @Schema(example = "16")
+        public Long goodwillCreditAccountId;
+        @Schema(example = "17")
+        public Long chargeOffExpenseAccountId;
+        @Schema(example = "18")
+        public Long chargeOffFraudExpenseAccountId;
 
         @Schema(example = "en_GB")
         public String locale;

@@ -30,6 +30,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,6 +52,7 @@ import org.apache.fineract.infrastructure.security.service.PlatformPasswordEncod
 import org.apache.fineract.infrastructure.security.service.RandomPasswordGenerator;
 import org.apache.fineract.organisation.office.domain.Office;
 import org.apache.fineract.organisation.staff.domain.Staff;
+import org.apache.fineract.organisation.staff.domain.StaffEnumerations;
 import org.apache.fineract.useradministration.service.AppUserConstants;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -141,6 +144,17 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
         this.passwordResetRequired = required;
     }
 
+    @Getter
+    @Column(name = "temporary_password")
+    private String temporaryPassword;
+
+    @Column(name = "temporary_password_expiry_time")
+    private OffsetDateTime temporaryPasswordExpiryTime;
+
+    @Getter
+    @Column(name = "is_password_reset_enabled", nullable = false)
+    private boolean passwordResetAllowed = false;
+
     public static AppUser fromJson(final Office userOffice, final Staff linkedStaff, final Set<Role> allRoles, final JsonCommand command) {
 
         final String username = command.stringValueOfParameterNamed("username");
@@ -180,6 +194,9 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
         final AppUser appUser = new AppUser(userOffice, user, allRoles, email, firstname, lastname, linkedStaff, passwordNeverExpire,
                 cannotChangePassword);
         appUser.updateLoginRetryLimitEnabled(resolveLoginRetryLimitEnabled(username, loginRetryLimitEnabled));
+        if (command.parameterExists(AppUserConstants.IS_PASSWORD_RESET_ALLOWED)) {
+            appUser.updatePasswordResetAllowed(command.booleanPrimitiveValueOfParameterNamed(AppUserConstants.IS_PASSWORD_RESET_ALLOWED));
+        }
         return appUser;
     }
 
@@ -211,12 +228,13 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
         this.cannotChangePassword = cannotChangePassword;
         this.failedLoginAttempts = 0;
         this.loginRetryLimitEnabled = false;
+        this.passwordResetAllowed = false;
     }
 
     public EnumOptionData organisationalRoleData() {
         EnumOptionData organisationalRole = null;
-        if (this.staff != null) {
-            organisationalRole = this.staff.organisationalRoleData();
+        if (this.staff != null && this.staff.getOrganisationalRoleType() != null) {
+            organisationalRole = StaffEnumerations.organisationalRole(this.staff.getOrganisationalRoleType());
         }
         return organisationalRole;
     }
@@ -245,9 +263,39 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
         }
 
         this.password = encodePassword;
+        clearTemporaryPassword();
         this.firstTimeLoginRemaining = false;
         this.lastTimePasswordUpdated = DateUtils.getBusinessLocalDate();
 
+    }
+
+    public void updateTemporaryPassword(final String encodedPassword, final OffsetDateTime expiryTime) {
+        this.temporaryPassword = encodedPassword;
+        this.temporaryPasswordExpiryTime = expiryTime;
+    }
+
+    public boolean isTemporaryPasswordExpired() {
+        if (this.temporaryPasswordExpiryTime == null) {
+            return false;
+        }
+        return OffsetDateTime.now(ZoneOffset.UTC).isAfter(this.temporaryPasswordExpiryTime);
+    }
+
+    public boolean hasValidTemporaryPassword() {
+        return StringUtils.isNotBlank(this.temporaryPassword) && !isTemporaryPasswordExpired();
+    }
+
+    public void clearTemporaryPasswordExpiry() {
+        clearTemporaryPassword();
+    }
+
+    public void clearTemporaryPassword() {
+        this.temporaryPassword = null;
+        this.temporaryPasswordExpiryTime = null;
+    }
+
+    public void updatePasswordResetAllowed(final boolean passwordResetAllowed) {
+        this.passwordResetAllowed = passwordResetAllowed && !isSystemUser() && !Boolean.TRUE.equals(this.cannotChangePassword);
     }
 
     public void changeOffice(final Office differentOffice) {
@@ -340,6 +388,13 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
                 updateLoginRetryLimitEnabled(effectiveValue);
             }
         }
+
+        if (command.hasParameter(AppUserConstants.IS_PASSWORD_RESET_ALLOWED)
+                && command.isChangeInBooleanParameterNamed(AppUserConstants.IS_PASSWORD_RESET_ALLOWED, this.passwordResetAllowed)) {
+            final boolean newValue = command.booleanPrimitiveValueOfParameterNamed(AppUserConstants.IS_PASSWORD_RESET_ALLOWED);
+            actualChanges.put(AppUserConstants.IS_PASSWORD_RESET_ALLOWED, newValue);
+            updatePasswordResetAllowed(newValue);
+        }
         return actualChanges;
     }
 
@@ -407,8 +462,8 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
     }
 
     public String getDisplayName() {
-        if (this.staff != null && StringUtils.isNotBlank(this.staff.displayName())) {
-            return this.staff.displayName();
+        if (this.staff != null && StringUtils.isNotBlank(this.staff.getDisplayName())) {
+            return this.staff.getDisplayName();
         }
         String firstName = StringUtils.isNotBlank(this.firstname) ? this.firstname : "";
         if (StringUtils.isNotBlank(this.lastname)) {
@@ -551,8 +606,9 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
     }
 
     private void validateHasPermission(final String prefix, final String resourceType) {
-        final String authorizationMessage = "User has no authority to " + prefix + " " + resourceType.toLowerCase() + "s";
-        final String matchPermission = prefix + "_" + resourceType.toUpperCase();
+        final String authorizationMessage = "User has no authority to " + prefix + " " + resourceType.toLowerCase(java.util.Locale.ROOT)
+                + "s";
+        final String matchPermission = prefix + "_" + resourceType.toUpperCase(java.util.Locale.ROOT);
 
         if (!hasNotPermissionForAnyOf("ALL_FUNCTIONS", "ALL_FUNCTIONS_READ", matchPermission)) {
             return;
@@ -635,7 +691,7 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
     }
 
     public void validateHasCheckerPermissionTo(final String function) {
-        final String checkerPermissionName = function.toUpperCase() + "_CHECKER";
+        final String checkerPermissionName = function.toUpperCase(java.util.Locale.ROOT) + "_CHECKER";
         if (hasNotPermissionTo("CHECKER_SUPER_USER") && hasNotPermissionTo(checkerPermissionName)) {
             final String authorizationMessage = "User has no authority to be a checker for: " + function;
             throw new NoAuthorizationException(authorizationMessage);
@@ -663,7 +719,7 @@ public class AppUser extends AbstractPersistableCustom<Long> implements Platform
     public String getStaffDisplayName() {
         String staffDisplayName = null;
         if (this.staff != null) {
-            staffDisplayName = this.staff.displayName();
+            staffDisplayName = this.staff.getDisplayName();
         }
         return staffDisplayName;
     }

@@ -36,6 +36,7 @@ import org.apache.fineract.portfolio.workingcapitalloan.data.WorkingCapitalLoanD
 import org.apache.fineract.portfolio.workingcapitalloan.domain.WorkingCapitalLoan;
 import org.apache.fineract.portfolio.workingcapitalloan.domain.WorkingCapitalLoanDisbursementDetails;
 import org.apache.fineract.portfolio.workingcapitalloan.domain.WorkingCapitalLoanPaymentAllocationRule;
+import org.apache.fineract.portfolio.workingcapitalloanbreach.mapper.WorkingCapitalBreachMapper;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.data.WorkingCapitalPaymentAllocationData;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalLoanProductRelatedDetails;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalPaymentAllocationType;
@@ -46,7 +47,8 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(config = MapstructMapperConfig.class, uses = { DelinquencyBucketMapper.class, WorkingCapitalLoanProductMapper.class,
-        WorkingCapitalLoanBalanceMapper.class, WorkingCapitalLoanDisbursementDetailMapper.class })
+        WorkingCapitalLoanBalanceMapper.class, WorkingCapitalLoanDisbursementDetailMapper.class, WorkingCapitalLoanTransactionMapper.class,
+        WorkingCapitalBreachMapper.class })
 public interface WorkingCapitalLoanMapper {
 
     @Mapping(target = "accountNo", source = "accountNumber")
@@ -61,11 +63,16 @@ public interface WorkingCapitalLoanMapper {
     @Mapping(target = "repaymentEvery", source = "loanProductRelatedDetails.repaymentEvery")
     @Mapping(target = "repaymentFrequencyType", source = "loanProductRelatedDetails", qualifiedByName = "repaymentFrequencyTypeData")
     @Mapping(target = "discount", source = "loanProductRelatedDetails.discount")
+    @Mapping(target = "breach", source = "loanProductRelatedDetails.breach")
     @Mapping(target = "delinquencyBucket", source = "loanProductRelatedDetails.delinquencyBucket")
     @Mapping(target = "balance", source = "balance")
     @Mapping(target = "paymentAllocation", source = "paymentAllocationRules", qualifiedByName = "paymentAllocationRulesToData")
     @Mapping(target = "timeline", source = "loan", qualifiedByName = "timelineData")
     @Mapping(target = "disbursementDetails", source = "disbursementDetails")
+    @Mapping(target = "transactions", source = "transactions")
+    @Mapping(target = "delinquencyGraceDays", source = "loanProductRelatedDetails.delinquencyGraceDays")
+    @Mapping(target = "delinquencyStartType", source = "loanProductRelatedDetails", qualifiedByName = "delinquencyStartTypeData")
+    @Mapping(target = "collectionData", ignore = true)
     WorkingCapitalLoanData toData(WorkingCapitalLoan loan);
 
     List<WorkingCapitalLoanData> toDataList(List<WorkingCapitalLoan> loans);
@@ -90,6 +97,12 @@ public interface WorkingCapitalLoanMapper {
     @Named("repaymentFrequencyTypeData")
     default StringEnumOptionData repaymentFrequencyTypeData(final WorkingCapitalLoanProductRelatedDetails detail) {
         return (detail != null && detail.getRepaymentFrequencyType() != null) ? detail.getRepaymentFrequencyType().toStringEnumOptionData()
+                : null;
+    }
+
+    @Named("delinquencyStartTypeData")
+    default StringEnumOptionData delinquencyStartTypeData(final WorkingCapitalLoanProductRelatedDetails detail) {
+        return (detail != null && detail.getDelinquencyStartType() != null) ? detail.getDelinquencyStartType().toStringEnumOptionData()
                 : null;
     }
 
@@ -120,6 +133,8 @@ public interface WorkingCapitalLoanMapper {
                 : loan.getDisbursementDetails().getFirst().getExpectedDisbursementDate();
         timelineData.setExpectedDisbursementDate(expectedDisbursementDate);
         timelineData.setSubmittedOnDate(loan.getSubmittedOnDate());
+        timelineData.setExpectedMaturityDate(loan.getExpectedMaturityDate());
+        timelineData.setActualMaturityDate(loan.getMaturedOnDate());
         if (loan.getApprovedBy() != null) {
             timelineData.setApprovedByUsername(loan.getApprovedBy().getUsername());
             timelineData.setApprovedByFirstname(loan.getApprovedBy().getFirstname());

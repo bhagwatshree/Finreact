@@ -48,6 +48,8 @@ public interface WorkingCapitalLoanRepository extends JpaRepository<WorkingCapit
             LEFT JOIN FETCH wcl.fund
             LEFT JOIN FETCH wcl.loanProduct
             LEFT JOIN FETCH wcl.paymentAllocationRules
+            LEFT JOIN FETCH wcl.transactions txn
+            LEFT JOIN FETCH txn.allocation
             LEFT JOIN FETCH wcl.disbursementDetails detail
             LEFT JOIN FETCH detail.disbursedBy
             WHERE wcl.id = :id
@@ -59,6 +61,8 @@ public interface WorkingCapitalLoanRepository extends JpaRepository<WorkingCapit
             LEFT JOIN FETCH wcl.client
             LEFT JOIN FETCH wcl.fund
             LEFT JOIN FETCH wcl.loanProduct
+            LEFT JOIN FETCH wcl.transactions txn
+            LEFT JOIN FETCH txn.allocation
             WHERE wcl.externalId = :externalId
             """)
     Optional<WorkingCapitalLoan> findByExternalIdWithDetails(@Param("externalId") ExternalId externalId);
@@ -70,6 +74,8 @@ public interface WorkingCapitalLoanRepository extends JpaRepository<WorkingCapit
             LEFT JOIN FETCH wcl.fund
             LEFT JOIN FETCH wcl.loanProduct
             LEFT JOIN FETCH wcl.paymentAllocationRules
+            LEFT JOIN FETCH wcl.transactions txn
+            LEFT JOIN FETCH txn.allocation
             WHERE wcl.id IN :ids
             """)
     List<WorkingCapitalLoan> findByIdInWithFullDetails(@Param("ids") List<Long> ids);
@@ -103,6 +109,9 @@ public interface WorkingCapitalLoanRepository extends JpaRepository<WorkingCapit
 
     @Query("select loan.id, loan.externalId, loan.accountNumber from WorkingCapitalLoanAccountLock lock left join WorkingCapitalLoan loan on lock.loanId = loan.id where lock.lockPlacedOnCobBusinessDate = :cobBusinessDate")
     List<COBIdAndExternalIdAndAccountNo> findAllStayedLockedByCobBusinessDate(@Param("cobBusinessDate") LocalDate cobBusinessDate);
+
+    @Query("select min(d.actualDisbursementDate) from WorkingCapitalLoanDisbursementDetails d where d.wcLoan.id = :loanId and d.actualDisbursementDate is not null")
+    Optional<LocalDate> findFirstActualDisbursementDate(@Param("loanId") Long loanId);
 
     boolean existsByLoanProduct_Id(Long productId);
 

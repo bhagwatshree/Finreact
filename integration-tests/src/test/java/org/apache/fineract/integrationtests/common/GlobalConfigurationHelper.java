@@ -55,7 +55,7 @@ public class GlobalConfigurationHelper {
 
     public GlobalConfigurationPropertyData getGlobalConfigurationById(final Long configId) {
         log.info("------------------------ RETRIEVING GLOBAL CONFIGURATION BY ID -------------------------");
-        return Calls.ok(FineractClientHelper.getFineractClient().globalConfigurations.retrieveOne3(configId));
+        return Calls.ok(FineractClientHelper.getFineractClient().globalConfigurations.retrieveOneGlobalConfiguration(configId));
     }
 
     // TODO: This is quite a bad pattern and adds a lot of time to individual test
@@ -572,6 +572,13 @@ public class GlobalConfigurationHelper {
         enableImmediateChargeAccrualPostMaturity.put("trapDoor", false);
         defaults.add(enableImmediateChargeAccrualPostMaturity);
 
+        HashMap<String, Object> blockTransactionsOnClosedOverpaidLoans = new HashMap<>();
+        blockTransactionsOnClosedOverpaidLoans.put("name", GlobalConfigurationConstants.BLOCK_TRANSACTIONS_ON_CLOSED_OVERPAID_LOANS);
+        blockTransactionsOnClosedOverpaidLoans.put("value", 0L);
+        blockTransactionsOnClosedOverpaidLoans.put("enabled", false);
+        blockTransactionsOnClosedOverpaidLoans.put("trapDoor", false);
+        defaults.add(blockTransactionsOnClosedOverpaidLoans);
+
         HashMap<String, Object> assetOwnerTransferInterestOutstandingStrategy = new HashMap<>();
         assetOwnerTransferInterestOutstandingStrategy.put("name",
                 GlobalConfigurationConstants.ASSET_OWNER_TRANSFER_OUTSTANDING_INTEREST_CALCULATION_STRATEGY);
@@ -628,6 +635,20 @@ public class GlobalConfigurationHelper {
         forceWithdrawalOnSavingsAccountLimit.put("trapDoor", false);
         defaults.add(forceWithdrawalOnSavingsAccountLimit);
 
+        HashMap<String, Object> allowCashAndNonCashAccrual = new HashMap<>();
+        allowCashAndNonCashAccrual.put("name", GlobalConfigurationConstants.ALLOW_CASH_AND_NON_CASH_ACCRUAL);
+        allowCashAndNonCashAccrual.put("value", 0L);
+        allowCashAndNonCashAccrual.put("enabled", true);
+        allowCashAndNonCashAccrual.put("trapDoor", false);
+        defaults.add(allowCashAndNonCashAccrual);
+
+        HashMap<String, Object> enableInstantDelinquencyCalculation = new HashMap<>();
+        enableInstantDelinquencyCalculation.put("name", GlobalConfigurationConstants.ENABLE_INSTANT_DELINQUENCY_CALCULATION);
+        enableInstantDelinquencyCalculation.put("value", 0L);
+        enableInstantDelinquencyCalculation.put("enabled", true);
+        enableInstantDelinquencyCalculation.put("trapDoor", false);
+        defaults.add(enableInstantDelinquencyCalculation);
+
         return defaults;
     }
 
@@ -638,7 +659,7 @@ public class GlobalConfigurationHelper {
 
     public void updateGlobalConfigurationInternal(final String configName, final Long value) {
         log.info("---------------------------UPDATE VALUE FOR GLOBAL CONFIG (internal) ---------------------------------------");
-        Calls.ok(FineractClientHelper.getFineractClient().legacy.updateGlobalConfiguration(configName, value));
+        Calls.ok(FineractClientHelper.getFineractClient().legacy.updateInternalGlobalConfiguration(configName, value));
     }
 
     public void manageConfigurations(final String configurationName, final boolean enabled) {

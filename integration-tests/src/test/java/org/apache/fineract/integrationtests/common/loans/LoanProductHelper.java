@@ -38,15 +38,15 @@ public class LoanProductHelper {
     }
 
     public GetLoanProductsProductIdResponse retrieveLoanProductByExternalId(String externalId) {
-        return Calls.ok(FineractClientHelper.getFineractClient().loanProducts.retrieveLoanProductDetails1(externalId));
+        return Calls.ok(FineractClientHelper.getFineractClient().loanProducts.retrieveLoanProductDetailsByExternalId(externalId));
     }
 
     public GetLoanProductsProductIdResponse retrieveLoanProductById(Long loanProductId) {
-        return Calls.ok(FineractClientHelper.getFineractClient().loanProducts.retrieveLoanProductDetails(loanProductId));
+        return Calls.ok(FineractClientHelper.getFineractClient().loanProducts.retrieveOneLoanProduct(loanProductId));
     }
 
     public PutLoanProductsProductIdResponse updateLoanProductByExternalId(String externalId, PutLoanProductsProductIdRequest request) {
-        return Calls.ok(FineractClientHelper.getFineractClient().loanProducts.updateLoanProduct1(externalId, request));
+        return Calls.ok(FineractClientHelper.getFineractClient().loanProducts.updateLoanProductByExternalId(externalId, request));
     }
 
     public PutLoanProductsProductIdResponse updateLoanProductById(Long loanProductId, PutLoanProductsProductIdRequest request) {
@@ -54,10 +54,10 @@ public class LoanProductHelper {
     }
 
     public GetLoanProductsTemplateResponse getLoanProductTemplate(boolean isProductMixTemplate) {
-        return Calls.ok(FineractClientHelper.getFineractClient().loanProducts.retrieveTemplate11(isProductMixTemplate));
+        return Calls.ok(FineractClientHelper.getFineractClient().loanProducts.retrieveTemplateLoanProduct(isProductMixTemplate));
     }
 
     public static Collection<LoanProductBasicDetailsData> fetchProductBasicDetailsList() {
-        return Calls.ok(FineractClientHelper.getFineractClient().loanProductsDetails.fetchProducts());
+        return Calls.ok(FineractClientHelper.getFineractClient().loanProductsDetails.retrieveAllLoanProductsDetails());
     }
 }

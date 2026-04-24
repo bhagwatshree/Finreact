@@ -30,10 +30,13 @@ import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.organisation.monetary.domain.MonetaryCurrency;
 import org.apache.fineract.portfolio.delinquency.mapper.DelinquencyBucketMapper;
 import org.apache.fineract.portfolio.workingcapitalloan.domain.WorkingCapitalLoanPeriodFrequencyType;
+import org.apache.fineract.portfolio.workingcapitalloanbreach.mapper.WorkingCapitalBreachMapper;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.data.WorkingCapitalLoanProductConfigurableAttributesData;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.data.WorkingCapitalLoanProductData;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.data.WorkingCapitalPaymentAllocationData;
+import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalAccountingRuleType;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalAmortizationType;
+import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalLoanDelinquencyStartType;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalLoanProduct;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalLoanProductConfigurableAttributes;
 import org.apache.fineract.portfolio.workingcapitalloanproduct.domain.WorkingCapitalLoanProductPaymentAllocationRule;
@@ -42,7 +45,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 
-@Mapper(config = MapstructMapperConfig.class, uses = { DelinquencyBucketMapper.class })
+@Mapper(config = MapstructMapperConfig.class, uses = { DelinquencyBucketMapper.class, WorkingCapitalBreachMapper.class })
 public interface WorkingCapitalLoanProductMapper {
 
     @Mapping(target = "fundId", source = "fund.id")
@@ -62,15 +65,25 @@ public interface WorkingCapitalLoanProductMapper {
     @Mapping(target = "discount", source = "relatedDetail.discount")
     @Mapping(target = "repaymentEvery", source = "relatedDetail.repaymentEvery")
     @Mapping(target = "repaymentFrequencyType", source = "relatedDetail.repaymentFrequencyType", qualifiedByName = "periodFrequencyTypeToStringEnumOptionData")
+    @Mapping(target = "breach", source = "breach")
     @Mapping(target = "allowAttributeOverrides", source = "configurableAttributes", qualifiedByName = "configurableAttributesToData")
+    @Mapping(target = "delinquencyGraceDays", source = "relatedDetail.delinquencyGraceDays")
+    @Mapping(target = "delinquencyStartType", source = "relatedDetail.delinquencyStartType", qualifiedByName = "delinquencyStartTypeToStringEnumOptionData")
+    @Mapping(target = "accountingRule", source = "accountingRule", qualifiedByName = "accountingRuleToStringEnumOptionData")
+    @Mapping(target = "accountingMappings", ignore = true)
+    @Mapping(target = "accountingRuleOptions", ignore = true)
+    @Mapping(target = "accountingMappingOptions", ignore = true)
     @Mapping(target = "fundOptions", ignore = true)
     @Mapping(target = "currencyOptions", ignore = true)
     @Mapping(target = "amortizationTypeOptions", ignore = true)
     @Mapping(target = "periodFrequencyTypeOptions", ignore = true)
+    @Mapping(target = "breachOptions", ignore = true)
     @Mapping(target = "advancedPaymentAllocationTypes", ignore = true)
     @Mapping(target = "advancedPaymentAllocationTransactionTypes", ignore = true)
     @Mapping(target = "applyTemplate", ignore = true)
     @Mapping(target = "delinquencyBucketOptions", ignore = true)
+    @Mapping(target = "delinquencyStartTypeOptions", ignore = true)
+    @Mapping(target = "delinquencyMinimumPaymentTypeOptions", ignore = true)
     WorkingCapitalLoanProductData toData(WorkingCapitalLoanProduct entity);
 
     List<WorkingCapitalLoanProductData> toDataList(List<WorkingCapitalLoanProduct> entities);
@@ -104,6 +117,12 @@ public interface WorkingCapitalLoanProductMapper {
         return periodFrequencyType != null ? periodFrequencyType.getValueAsStringEnumOptionData() : null;
     }
 
+    @Named("delinquencyStartTypeToStringEnumOptionData")
+    default StringEnumOptionData delinquencyStartTypeToStringEnumOptionData(
+            final WorkingCapitalLoanDelinquencyStartType delinquencyStartType) {
+        return delinquencyStartType != null ? delinquencyStartType.getValueAsStringEnumOptionData() : null;
+    }
+
     @Named("paymentAllocationRulesToData")
     default List<WorkingCapitalPaymentAllocationData> paymentAllocationRulesToData(
             final List<WorkingCapitalLoanProductPaymentAllocationRule> rules) {
@@ -122,6 +141,14 @@ public interface WorkingCapitalLoanProductMapper {
         }).toList();
     }
 
+    @Named("accountingRuleToStringEnumOptionData")
+    default StringEnumOptionData accountingRuleToStringEnumOptionData(final WorkingCapitalAccountingRuleType accountingRule) {
+        if (accountingRule == null) {
+            return null;
+        }
+        return accountingRule.toData();
+    }
+
     @Named("configurableAttributesToData")
     default WorkingCapitalLoanProductConfigurableAttributesData configurableAttributesToData(
             final WorkingCapitalLoanProductConfigurableAttributes configurableAttributes) {
@@ -129,10 +156,11 @@ public interface WorkingCapitalLoanProductMapper {
             return null;
         }
         return WorkingCapitalLoanProductConfigurableAttributesData.builder() //
-                .delinquencyBucketClassification(configurableAttributes.getDelinquencyBucketClassification()) //
-                .discountDefault(configurableAttributes.getDiscountDefault()) //
-                .periodPaymentFrequency(configurableAttributes.getPeriodPaymentFrequency()) //
-                .periodPaymentFrequencyType(configurableAttributes.getPeriodPaymentFrequencyType()) //
+                .delinquencyBucketClassification(configurableAttributes.isDelinquencyBucketClassification()) //
+                .breach(configurableAttributes.isBreach()) //
+                .discountDefault(configurableAttributes.isDiscountDefault()) //
+                .periodPaymentFrequency(configurableAttributes.isPeriodPaymentFrequency()) //
+                .periodPaymentFrequencyType(configurableAttributes.isPeriodPaymentFrequencyType()) //
                 .build();
     }
 }

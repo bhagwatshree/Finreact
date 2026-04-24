@@ -79,7 +79,6 @@ public class GlobalConfigurationApiResource {
     private final PortfolioCommandSourceWritePlatformService commandsSourceWritePlatformService;
 
     @GET
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     @Operation(summary = "Retrieve Global Configuration | Retrieve Global Configuration for surveys", description = "Returns the list global enable/disable configurations.\n"
             + "\n" + "Example Requests:\n" + "\n" + "configurations\n\n" + "\n"
@@ -99,10 +98,9 @@ public class GlobalConfigurationApiResource {
 
     @GET
     @Path("{configId}")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Retrieve Global Configuration", description = "Returns a global enable/disable configurations.\n" + "\n"
-            + "Example Requests:\n" + "\n" + "configurations/1")
+    @Operation(summary = "Retrieve Global Configuration", operationId = "retrieveOneGlobalConfiguration", description = "Returns a global enable/disable configurations.\n"
+            + "\n" + "Example Requests:\n" + "\n" + "configurations/1")
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GlobalConfigurationPropertyData.class)))
     public String retrieveOne(@PathParam("configId") @Parameter(description = "configId") final Long configId,
             @Context final UriInfo uriInfo) {
@@ -117,7 +115,6 @@ public class GlobalConfigurationApiResource {
 
     @GET
     @Path("name/{name}")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     @Operation(summary = "Retrieve Global Configuration", description = "Returns a global enable/disable configuration.\n" + "\n"
             + "Example Requests:\n" + "\n" + "configurations/name/enable-address")
@@ -136,7 +133,7 @@ public class GlobalConfigurationApiResource {
     @Path("{configId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Update Global Configuration", description = "Updates an enable/disable global configuration item.")
+    @Operation(summary = "Update Global Configuration", operationId = "updateGlobalConfiguration", description = "Updates an enable/disable global configuration item.")
     @RequestBody(required = true, content = @Content(schema = @Schema(implementation = GlobalConfigurationApiResourceSwagger.PutGlobalConfigurationsRequest.class)))
     @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GlobalConfigurationApiResourceSwagger.PutGlobalConfigurationsResponse.class)))
     public String updateConfiguration(@PathParam("configId") @Parameter(description = "configId") final Long configId,

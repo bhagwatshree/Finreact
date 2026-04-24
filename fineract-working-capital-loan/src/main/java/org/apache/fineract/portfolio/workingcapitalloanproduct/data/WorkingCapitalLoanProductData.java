@@ -23,16 +23,19 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.fineract.accounting.glaccount.data.GLAccountData;
 import org.apache.fineract.infrastructure.core.data.EnumOptionData;
 import org.apache.fineract.infrastructure.core.data.StringEnumOptionData;
 import org.apache.fineract.organisation.monetary.data.CurrencyData;
 import org.apache.fineract.portfolio.delinquency.data.DelinquencyBucketData;
 import org.apache.fineract.portfolio.fund.data.FundData;
+import org.apache.fineract.portfolio.workingcapitalloanbreach.data.WorkingCapitalBreachData;
 
 /**
  * Data Transfer Object for Working Capital Loan Product.
@@ -61,6 +64,7 @@ public class WorkingCapitalLoanProductData implements Serializable {
     // Settings details
     private StringEnumOptionData amortizationType;
     private DelinquencyBucketData delinquencyBucket;
+    private WorkingCapitalBreachData breach;
     private Integer npvDayCount;
     private List<WorkingCapitalPaymentAllocationData> paymentAllocation;
 
@@ -74,9 +78,15 @@ public class WorkingCapitalLoanProductData implements Serializable {
     private BigDecimal discount;
     private Integer repaymentEvery;
     private StringEnumOptionData repaymentFrequencyType;
+    private Integer delinquencyGraceDays;
+    private StringEnumOptionData delinquencyStartType;
 
     // Configurable attributes (allowAttributeOverrides)
     private WorkingCapitalLoanProductConfigurableAttributesData allowAttributeOverrides;
+
+    // Accounting
+    private StringEnumOptionData accountingRule;
+    private Map<String, GLAccountData> accountingMappings;
 
     // Template related
     private Collection<FundData> fundOptions;
@@ -84,8 +94,13 @@ public class WorkingCapitalLoanProductData implements Serializable {
     private List<StringEnumOptionData> amortizationTypeOptions;
     private List<StringEnumOptionData> periodFrequencyTypeOptions;
     private List<StringEnumOptionData> advancedPaymentAllocationTypes;
+    private List<StringEnumOptionData> delinquencyStartTypeOptions;
+    private List<StringEnumOptionData> delinquencyMinimumPaymentTypeOptions;
     private List<EnumOptionData> advancedPaymentAllocationTransactionTypes;
     private Collection<DelinquencyBucketData> delinquencyBucketOptions;
+    private List<WorkingCapitalBreachData> breachOptions;
+    private List<StringEnumOptionData> accountingRuleOptions;
+    private Map<String, List<GLAccountData>> accountingMappingOptions;
 
     public WorkingCapitalLoanProductData applyTemplate(final WorkingCapitalLoanProductData productTemplate) {
         setFundOptions(productTemplate.getFundOptions());
@@ -95,6 +110,11 @@ public class WorkingCapitalLoanProductData implements Serializable {
         setAdvancedPaymentAllocationTransactionTypes(productTemplate.getAdvancedPaymentAllocationTransactionTypes());
         setAdvancedPaymentAllocationTypes(productTemplate.getAdvancedPaymentAllocationTypes());
         setDelinquencyBucketOptions(productTemplate.getDelinquencyBucketOptions());
+        setBreachOptions(productTemplate.getBreachOptions());
+        setDelinquencyStartTypeOptions(productTemplate.getDelinquencyStartTypeOptions());
+        setAccountingRuleOptions(productTemplate.getAccountingRuleOptions());
+        setAccountingMappingOptions(productTemplate.getAccountingMappingOptions());
+        setDelinquencyMinimumPaymentTypeOptions(productTemplate.getDelinquencyMinimumPaymentTypeOptions());
         return this;
     }
 }

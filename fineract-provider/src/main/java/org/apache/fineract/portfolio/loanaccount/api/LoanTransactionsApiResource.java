@@ -117,7 +117,6 @@ public class LoanTransactionsApiResource {
 
     @GET
     @Path("{loanId}/transactions/template")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     @Operation(summary = "Retrieve Loan Transaction Template", description = "This is a convenience resource. It can be useful when building maintenance user interface screens for client applications. The template data returned consists of any or all of:\n"
             + "\n" + "Field Defaults\n" + "Allowed Value Lists\n\n" + "Example Requests:\n" + "\n"
@@ -148,9 +147,8 @@ public class LoanTransactionsApiResource {
 
     @GET
     @Path("external-id/{loanExternalId}/transactions/template")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Retrieve Loan Transaction Template", description = "This is a convenience resource. It can be useful when building maintenance user interface screens for client applications. The template data returned consists of any or all of:\n"
+    @Operation(summary = "Retrieve Loan Transaction Template", operationId = "retrieveTransactionTemplateByLoanExternalId", description = "This is a convenience resource. It can be useful when building maintenance user interface screens for client applications. The template data returned consists of any or all of:\n"
             + "\n" + "Field Defaults\n" + "Allowed Value Lists\n\n" + "Example Requests:\n" + "\n"
             + "loans/1/transactions/template?command=repayment" + "loans/1/transactions/template?command=merchantIssuedRefund"
             + "loans/1/transactions/template?command=payoutRefund" + "loans/1/transactions/template?command=goodwillCredit" + "\n"
@@ -181,7 +179,6 @@ public class LoanTransactionsApiResource {
 
     @GET
     @Path("{loanId}/transactions/{transactionId}")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     @Operation(summary = "Retrieve a Transaction Details", description = "Retrieves a Transaction Details\n\n" + "Example Request:\n" + "\n"
             + "loans/5/transactions/3")
@@ -197,7 +194,6 @@ public class LoanTransactionsApiResource {
 
     @GET
     @Path("{loanId}/transactions/external-id/{externalTransactionId}")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     @Operation(summary = "Retrieve a Transaction Details", description = "Retrieves a Transaction Details\n\n" + "Example Request:\n" + "\n"
             + "loans/5/transactions/external-id/5dd80a7c-ccba-4446-b378-01eb6f53e871")
@@ -214,7 +210,6 @@ public class LoanTransactionsApiResource {
 
     @GET
     @Path("external-id/{loanExternalId}/transactions/{transactionId}")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     @Operation(summary = "Retrieve a Transaction Details", description = "Retrieves a Transaction Details\n\n" + "Example Request:\n" + "\n"
             + "loans/5/transactions/3")
@@ -231,7 +226,6 @@ public class LoanTransactionsApiResource {
 
     @GET
     @Path("external-id/{loanExternalId}/transactions/external-id/{externalTransactionId}")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     @Operation(summary = "Retrieve a Transaction Details", description = "Retrieves a Transaction Details\n\n" + "Example Request:\n" + "\n"
             + "loans/external-id/7dd80a7c-ycba-a446-t378-91eb6f53e854/transactions/external-id/5dd80a7c-ccba-4446-b378-01eb6f53e871")
@@ -248,7 +242,6 @@ public class LoanTransactionsApiResource {
 
     @GET
     @Path("{loanId}/transactions")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     @Operation(summary = "Retrieve Transactions", description = "Retrieves transactions of a loan")
     @ApiResponses({
@@ -265,7 +258,6 @@ public class LoanTransactionsApiResource {
 
     @GET
     @Path("external-id/{loanExternalId}/transactions")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     @Operation(summary = "Retrieve Transactions", description = "Retrieves transactions of a loan")
     @ApiResponses({
@@ -312,7 +304,7 @@ public class LoanTransactionsApiResource {
     @Path("external-id/{loanExternalId}/transactions")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Significant Loan Transactions", description = "This API covers the major loan transaction functionality\n\n"
+    @Operation(summary = "Significant Loan Transactions", operationId = "executeLoanTransactionByLoanExternalId", description = "This API covers the major loan transaction functionality\n\n"
             + "Example Requests:\n\n" + "loans/external-id/7dd80a7c-ycba-a446-t378-91eb6f53e854/transactions?command=repayment"
             + " | Make a Repayment | \n"
             + "loans/external-id/7dd80a7c-ycba-a446-t378-91eb6f53e854/transactions?command=merchantIssuedRefund"
@@ -365,7 +357,7 @@ public class LoanTransactionsApiResource {
     @Path("external-id/{loanExternalId}/transactions/{transactionId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Adjust a Transaction", description = "Note: there is no need to specify command={transactionType} parameter.\n\n"
+    @Operation(summary = "Adjust a Transaction", operationId = "adjustLoanTransactionByLoanExternalId", description = "Note: there is no need to specify command={transactionType} parameter.\n\n"
             + "Mandatory Fields: transactionDate, transactionAmount")
     @RequestBody(required = true, content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PostLoansLoanIdTransactionsTransactionIdRequest.class)))
     @ApiResponses({
@@ -383,7 +375,7 @@ public class LoanTransactionsApiResource {
     @Path("{loanId}/transactions/external-id/{externalTransactionId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Adjust a Transaction", description = "Note: there is no need to specify command={transactionType} parameter.\n\n"
+    @Operation(summary = "Adjust a Transaction", operationId = "adjustLoanTransactionByTransactionExternalId", description = "Note: there is no need to specify command={transactionType} parameter.\n\n"
             + "Mandatory Fields: transactionDate, transactionAmount")
     @RequestBody(required = true, content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PostLoansLoanIdTransactionsTransactionIdRequest.class)))
     @ApiResponses({
@@ -400,7 +392,7 @@ public class LoanTransactionsApiResource {
     @Path("external-id/{loanExternalId}/transactions/external-id/{externalTransactionId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Adjust a Transaction", description = "Note: there is no need to specify command={transactionType} parameter.\n\n"
+    @Operation(summary = "Adjust a Transaction", operationId = "adjustLoanTransactionByLoanAndTransactionExternalId", description = "Note: there is no need to specify command={transactionType} parameter.\n\n"
             + "Mandatory Fields: transactionDate, transactionAmount")
     @RequestBody(required = true, content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PostLoansLoanIdTransactionsTransactionIdRequest.class)))
     @ApiResponses({
@@ -432,7 +424,7 @@ public class LoanTransactionsApiResource {
     @Path("external-id/{loanExternalId}/transactions/{transactionId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Undo a Waive Charge Transaction", description = "Undo a Waive Charge Transaction")
+    @Operation(summary = "Undo a Waive Charge Transaction", operationId = "undoWaiveChargeByLoanExternalId", description = "Undo a Waive Charge Transaction")
     @RequestBody(required = true, content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PutChargeTransactionChangesRequest.class)))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PutChargeTransactionChangesResponse.class))) })
@@ -447,7 +439,7 @@ public class LoanTransactionsApiResource {
     @Path("{loanId}/transactions/external-id/{transactionExternalId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Undo a Waive Charge Transaction", description = "Undo a Waive Charge Transaction")
+    @Operation(summary = "Undo a Waive Charge Transaction", operationId = "undoWaiveChargeByTransactionExternalId", description = "Undo a Waive Charge Transaction")
     @RequestBody(required = true, content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PutChargeTransactionChangesRequest.class)))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PutChargeTransactionChangesResponse.class))) })
@@ -461,7 +453,7 @@ public class LoanTransactionsApiResource {
     @Path("external-id/{loanExternalId}/transactions/external-id/{transactionExternalId}")
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Undo a Waive Charge Transaction", description = "Undo a Waive Charge Transaction")
+    @Operation(summary = "Undo a Waive Charge Transaction", operationId = "undoWaiveChargeByLoanAndTransactionExternalId", description = "Undo a Waive Charge Transaction")
     @RequestBody(required = true, content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PutChargeTransactionChangesRequest.class)))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PutChargeTransactionChangesResponse.class))) })
@@ -801,7 +793,7 @@ public class LoanTransactionsApiResource {
     @GET
     @Path("external-id/{loanExternalId}/transactions/reage-preview")
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Preview Re-Age Schedule", description = "Generates a preview of the re-aged loan schedule based on the provided parameters without creating any transactions or modifying the loan.")
+    @Operation(summary = "Preview Re-Age Schedule", operationId = "previewReAgeScheduleByLoanExternalId", description = "Generates a preview of the re-aged loan schedule based on the provided parameters without creating any transactions or modifying the loan.")
     public LoanScheduleData previewReAgeSchedule(
             @PathParam("loanExternalId") @Parameter(description = "loanExternalId", required = true) final String loanExternalId,
             @Valid @BeanParam final ReAgePreviewRequest reAgePreviewRequest) {
@@ -823,7 +815,7 @@ public class LoanTransactionsApiResource {
     @GET
     @Path("external-id/{loanExternalId}/transactions/reamortization-preview")
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Preview Re-amortized Schedule", description = "Generates a preview of the re-amortized loan schedule based on the provided parameters without creating any transactions or modifying the loan.")
+    @Operation(summary = "Preview Re-amortized Schedule", operationId = "previewReAmortizationScheduleByLoanExternalId", description = "Generates a preview of the re-amortized loan schedule based on the provided parameters without creating any transactions or modifying the loan.")
     public LoanScheduleData previewReAmortizationSchedule(
             @PathParam("loanExternalId") @Parameter(description = "loanExternalId", required = true) final String loanExternalId,
             @Valid @BeanParam final ReAmortizationPreviewRequest reAmortizationPreviewRequest) {

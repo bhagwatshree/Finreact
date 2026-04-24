@@ -662,6 +662,12 @@ public final class ErrorMessageHelper {
                 actual.toString(), expected.toString());
     }
 
+    public static String wrongStatusCodeInBreachScheduleRetrieval(Integer actual, Integer expected, Long loanId) {
+        return String.format(
+                "Not the expected HTTP status code for GET breach-schedule on loanId %d: Actual code is: %s. Expected code is: %s", loanId,
+                actual.toString(), expected.toString());
+    }
+
     public static String idNull() {
         return "The requested ID is null";
     }
@@ -1043,5 +1049,53 @@ public final class ErrorMessageHelper {
 
     public static String workingCapitalLoanProductIdentifiedDoesNotExistFailure(String identifierId) {
         return String.format("Working Capital Loan Product with identifier %s does not exist", identifierId);
+    }
+
+    public static String workingCapitalDelinquencyBucketDuplicateNameFailure(Long identifierId) {
+        return String.format("Data integrity issue with resource: %d", identifierId);
+    }
+
+    public static String workingCapitalDelinquencyBucketNotFoundFailure(Long id) {
+        return String.format("Delinquency bucket with id `%d` is not found.", id);
+    }
+
+    public static String workingCapitalDelinquencyBucketDoesntExistFailure(Long id) {
+        return String.format("Delinquency bucket with id `%d` does not exist.", id);
+    }
+
+    public static String workingCapitalBreachNotFoundFailure(final Long id) {
+        return String.format("Working Capital Breach with id %d was not found.", id);
+    }
+
+    public static String workingCapitalBreachDuplicateNameFailure(final Long id) {
+        return String.format("Data integrity issue with resource: %d", id);
+    }
+
+    public static String disburseNotApprovedFailure(String status) {
+        return String.format("Disbursement is not allowed from current status %s", status);
+    }
+
+    public static String disburseDateFailure(String errorMessageDescription) {
+        return String.format("Failed data validation due to: %s", errorMessageDescription);
+    }
+
+    public static String undoDisbursalDisallowedFailure(String status) {
+        return String.format("Transition LOAN_DISBURSAL_UNDO is not allowed from status %s", status);
+    }
+
+    public static String discountAmountExceedFailure() {
+        return "Failed data validation due to: amount.cannot.exceed.created.discount.";
+    }
+
+    public static String discountAlreadySetBeforeDisburseFailure() {
+        return "Discount was already set before disbursement and cannot be added again";
+    }
+
+    public static String discountDiffDateFromDisburseFailure() {
+        return "Failed data validation due to: transaction.date.must.be.equal.disbursement.date.";
+    }
+
+    public static String discountOverrideDisallowedByProductFailure() {
+        return "Failed data validation due to: override.not.allowed.by.product.";
     }
 }

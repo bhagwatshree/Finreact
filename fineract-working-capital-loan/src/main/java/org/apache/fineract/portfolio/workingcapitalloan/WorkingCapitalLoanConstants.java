@@ -42,4 +42,36 @@ public final class WorkingCapitalLoanConstants {
     public static final String submittedOnNoteParameterName = "submittedOnNote";
     public static final String totalPaymentParamName = "totalPayment";
     public static final String principalAmountParamName = "principalAmount";
+
+    // Loan commands
+    public static final String APPROVE_LOAN_COMMAND = "approve";
+    public static final String DISBURSE_LOAN_COMMAND = "disburse";
+    public static final String REPAYMENT_LOAN_COMMAND = "repayment";
+    public static final String CREDIT_BALANCE_REFUND_COMMAND = "creditBalanceRefund";
+
+    // Approval / Rejection / Undo-approval parameters
+    public static final String RESOURCE_NAME = WCL_RESOURCE_NAME;
+    public static final String approvedOnDateParamName = "approvedOnDate";
+    public static final String approvedLoanAmountParamName = "approvedLoanAmount";
+    public static final String expectedDisbursementDateParamName = "expectedDisbursementDate";
+    public static final String discountAmountParamName = "discountAmount";
+    public static final String noteParamName = "note";
+    public static final String rejectedOnDateParamName = "rejectedOnDate";
+
+    // Disbursal / Undo disbursal parameters
+    public static final String actualDisbursementDateParamName = "actualDisbursementDate";
+    public static final String transactionAmountParamName = "transactionAmount";
+    public static final String classificationIdParamName = "classificationId";
+
+    public static final String DISBURSEMENT_CLASSIFICATION_CODE_NAME = "working_capital_loan_disbursement_classification";
+    public static final String REPAYMENT_CLASSIFICATION_CODE_NAME = "working_capital_loan_repayment_classification";
+    public static final String CREDIT_BALANCE_REFUND_CLASSIFICATION_CODE_NAME = "working_capital_loan_credit_balance_refund_classification";
+    public static final String paymentDetailsParamName = "paymentDetails";
+    public static final String paymentTypeIdParamName = "paymentTypeId";
+    public static final String accountNumberParamName = "accountNumber";
+    public static final String checkNumberParamName = "checkNumber";
+    public static final String routingCodeParamName = "routingCode";
+    public static final String receiptNumberParamName = "receiptNumber";
+    public static final String bankNumberParamName = "bankNumber";
+    public static final String transactionDateParamName = "transactionDate";
 }

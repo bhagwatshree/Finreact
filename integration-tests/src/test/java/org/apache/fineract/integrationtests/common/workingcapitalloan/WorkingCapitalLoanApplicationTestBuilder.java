@@ -48,8 +48,11 @@ public class WorkingCapitalLoanApplicationTestBuilder {
     private String submittedOnNote;
     private Integer repaymentEvery;
     private String repaymentFrequencyType;
+    private Long breachId;
     private Long delinquencyBucketId;
     private List<String> paymentAllocationTypes;
+    private Integer delinquencyGraceDays;
+    private String delinquencyStartType;
 
     public WorkingCapitalLoanApplicationTestBuilder withClientId(final Long clientId) {
         this.clientId = clientId;
@@ -121,8 +124,23 @@ public class WorkingCapitalLoanApplicationTestBuilder {
         return this;
     }
 
+    public WorkingCapitalLoanApplicationTestBuilder withBreachId(final Long breachId) {
+        this.breachId = breachId;
+        return this;
+    }
+
     public WorkingCapitalLoanApplicationTestBuilder withDelinquencyBucketId(final Long delinquencyBucketId) {
         this.delinquencyBucketId = delinquencyBucketId;
+        return this;
+    }
+
+    public WorkingCapitalLoanApplicationTestBuilder withDelinquencyGraceDays(final Integer delinquencyGraceDays) {
+        this.delinquencyGraceDays = delinquencyGraceDays;
+        return this;
+    }
+
+    public WorkingCapitalLoanApplicationTestBuilder withDelinquencyStartType(final String delinquencyStartType) {
+        this.delinquencyStartType = delinquencyStartType;
         return this;
     }
 
@@ -191,6 +209,11 @@ public class WorkingCapitalLoanApplicationTestBuilder {
         if (delinquencyBucketId != null) {
             json.addProperty("delinquencyBucketId", delinquencyBucketId);
         }
+        json.addProperty("delinquencyGraceDays", delinquencyGraceDays);
+        json.addProperty("delinquencyStartType", delinquencyStartType);
+        if (breachId != null) {
+            json.addProperty("breachId", breachId);
+        }
         if (paymentAllocationTypes != null && !paymentAllocationTypes.isEmpty()) {
             json.add("paymentAllocation", buildPaymentAllocationJson());
         }
@@ -236,10 +259,61 @@ public class WorkingCapitalLoanApplicationTestBuilder {
         if (delinquencyBucketId != null) {
             json.addProperty("delinquencyBucketId", delinquencyBucketId);
         }
+        if (delinquencyGraceDays != null) {
+            json.addProperty("delinquencyGraceDays", delinquencyGraceDays);
+        }
+        if (delinquencyStartType != null) {
+            json.addProperty("delinquencyStartType", delinquencyStartType);
+        }
+        if (breachId != null) {
+            json.addProperty("breachId", breachId);
+        }
         if (paymentAllocationTypes != null && !paymentAllocationTypes.isEmpty()) {
             json.add("paymentAllocation", buildPaymentAllocationJson());
         }
         return json;
+    }
+
+    public static String buildApproveJson(final LocalDate approvedOnDate, final BigDecimal approvedLoanAmount,
+            final BigDecimal discountAmount) {
+        final JsonObject json = new JsonObject();
+        json.addProperty("locale", DEFAULT_LOCALE);
+        json.addProperty("dateFormat", DEFAULT_DATE_FORMAT);
+        if (approvedOnDate != null) {
+            json.addProperty("approvedOnDate", approvedOnDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        }
+        // expectedDisbursementDate is mandatory — default to 7 days after approval
+        final LocalDate disbursementDate = approvedOnDate != null ? approvedOnDate.plusDays(7)
+                : LocalDate.now(ZoneId.systemDefault()).plusDays(7);
+        json.addProperty("expectedDisbursementDate", disbursementDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        if (approvedLoanAmount != null) {
+            json.addProperty("approvedLoanAmount", approvedLoanAmount);
+        }
+        if (discountAmount != null) {
+            json.addProperty("discountAmount", discountAmount);
+        }
+        return json.toString();
+    }
+
+    public static String buildApproveJson(final LocalDate approvedOnDate) {
+        return buildApproveJson(approvedOnDate, null, null);
+    }
+
+    public static String buildRejectJson(final LocalDate rejectedOnDate) {
+        final JsonObject json = new JsonObject();
+        json.addProperty("locale", DEFAULT_LOCALE);
+        json.addProperty("dateFormat", DEFAULT_DATE_FORMAT);
+        if (rejectedOnDate != null) {
+            json.addProperty("rejectedOnDate", rejectedOnDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        }
+        return json.toString();
+    }
+
+    public static String buildUndoApproveJson() {
+        final JsonObject json = new JsonObject();
+        json.addProperty("locale", DEFAULT_LOCALE);
+        json.addProperty("dateFormat", DEFAULT_DATE_FORMAT);
+        return json.toString();
     }
 
     private JsonArray buildPaymentAllocationJson() {

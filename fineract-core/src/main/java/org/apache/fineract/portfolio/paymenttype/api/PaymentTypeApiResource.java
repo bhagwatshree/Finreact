@@ -33,7 +33,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
-import org.apache.fineract.command.core.CommandPipeline;
+import org.apache.fineract.command.core.CommandDispatcher;
 import org.apache.fineract.infrastructure.core.serialization.DefaultToApiJsonSerializer;
 import org.apache.fineract.portfolio.paymenttype.command.PaymentTypeCreateCommand;
 import org.apache.fineract.portfolio.paymenttype.command.PaymentTypeDeleteCommand;
@@ -55,11 +55,10 @@ import org.springframework.stereotype.Component;
 public class PaymentTypeApiResource {
 
     private final PaymentTypeReadService readPlatformService;
-    private final CommandPipeline commandPipeline;
+    private final CommandDispatcher dispatcher;
     private final DefaultToApiJsonSerializer<PaymentTypeData> jsonSerializer;
 
     @GET
-    @Consumes({ MediaType.TEXT_HTML, MediaType.APPLICATION_JSON })
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Retrieve all Payment Types", description = "Retrieve list of payment types")
     public List<PaymentTypeData> getAllPaymentTypes(@QueryParam("onlyWithCode") final boolean onlyWithCode) {
@@ -68,7 +67,6 @@ public class PaymentTypeApiResource {
 
     @GET
     @Path("{paymentTypeId}")
-    @Consumes({ MediaType.TEXT_HTML, MediaType.APPLICATION_JSON })
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Retrieve a Payment Type", description = "Retrieves a payment type")
     public PaymentTypeData retrieveOnePaymentType(@PathParam("paymentTypeId") final Long paymentTypeId) {
@@ -84,7 +82,7 @@ public class PaymentTypeApiResource {
 
         command.setPayload(request);
 
-        final Supplier<PaymentTypeCreateResponse> response = commandPipeline.send(command);
+        final Supplier<PaymentTypeCreateResponse> response = dispatcher.dispatch(command);
 
         return response.get();
     }
@@ -103,23 +101,22 @@ public class PaymentTypeApiResource {
 
         command.setPayload(request);
 
-        final Supplier<PaymentTypeUpdateResponse> response = commandPipeline.send(command);
+        final Supplier<PaymentTypeUpdateResponse> response = dispatcher.dispatch(command);
 
         return response.get();
     }
 
     @DELETE
     @Path("{paymentTypeId}")
-    @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    @Operation(summary = "Delete a Payment Type", description = "Deletes payment type")
+    @Operation(summary = "Delete a Payment Type", operationId = "deleteCodePaymentType", description = "Deletes payment type")
     public PaymentTypeDeleteResponse deleteCode(@PathParam("paymentTypeId") final Long paymentTypeId) {
 
         final var command = new PaymentTypeDeleteCommand();
 
         command.setPayload(PaymentTypeDeleteRequest.builder().id(paymentTypeId).build());
 
-        final Supplier<PaymentTypeDeleteResponse> response = commandPipeline.send(command);
+        final Supplier<PaymentTypeDeleteResponse> response = dispatcher.dispatch(command);
 
         return response.get();
     }

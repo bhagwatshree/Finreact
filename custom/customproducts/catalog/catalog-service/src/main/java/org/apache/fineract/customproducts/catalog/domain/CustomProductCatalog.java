@@ -1,0 +1,59 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+package org.apache.fineract.customproducts.catalog.domain;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.apache.fineract.infrastructure.core.domain.AbstractAuditableWithUTCDateTimeCustom;
+
+@Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@Table(name = "c_custom_product_catalog")
+public class CustomProductCatalog extends AbstractAuditableWithUTCDateTimeCustom<Long> {
+
+    @Column(name = "code", nullable = false, unique = true, length = 50)
+    private String code;
+
+    @Column(name = "display_name", nullable = false, length = 200)
+    private String displayName;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "family", nullable = false, length = 50)
+    private CustomProductFamily family;
+
+    @Column(name = "core_savings_product_id")
+    private Long coreSavingsProductId;
+
+    @Column(name = "marketing_tagline", length = 500)
+    private String marketingTagline;
+
+    @Column(name = "icon_url", length = 500)
+    private String iconUrl;
+
+    @Column(name = "enabled", nullable = false)
+    private boolean enabled = true;
+}

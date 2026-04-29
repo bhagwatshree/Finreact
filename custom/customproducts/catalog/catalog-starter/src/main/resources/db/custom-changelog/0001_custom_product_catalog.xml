@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements. See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership. The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License. You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied. See the License for the
+    specific language governing permissions and limitations
+    under the License.
+
+-->
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+
+    <changeSet author="customproducts" id="1">
+        <createTable tableName="c_custom_product_catalog">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="code" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="display_name" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="family" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="core_savings_product_id" type="BIGINT"/>
+            <column name="marketing_tagline" type="VARCHAR(500)"/>
+            <column name="icon_url" type="VARCHAR(500)"/>
+            <column defaultValueBoolean="true" name="enabled" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="TIMESTAMP WITH TIME ZONE"/>
+            <column name="last_modified_date" type="TIMESTAMP WITH TIME ZONE"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="c_custom_product_catalog"
+                                 baseColumnNames="core_savings_product_id"
+                                 constraintName="fk_c_custom_product_catalog_core_product"
+                                 referencedTableName="m_savings_product"
+                                 referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet author="customproducts" id="2">
+        <createTable tableName="c_custom_product_account_link">
+            <column autoIncrement="true" name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true"/>
+            </column>
+            <column name="custom_product_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="savings_account_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="link_type" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_date" type="TIMESTAMP WITH TIME ZONE"/>
+        </createTable>
+        <addForeignKeyConstraint baseTableName="c_custom_product_account_link"
+                                 baseColumnNames="custom_product_id"
+                                 constraintName="fk_c_custom_product_account_link_product"
+                                 referencedTableName="c_custom_product_catalog"
+                                 referencedColumnNames="id"/>
+        <createIndex indexName="idx_c_custom_product_account_link_account"
+                     tableName="c_custom_product_account_link">
+            <column name="savings_account_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="customproducts" id="3" context="custom_changelog">
+        <comment>Seed the 5 custom-product catalog rows. core_savings_product_id is left NULL until an operator points each row at a real m_savings_product.</comment>
+        <insert tableName="c_custom_product_catalog">
+            <column name="code" value="SAV"/>
+            <column name="display_name" value="Savings with Interest"/>
+            <column name="family" value="SAVINGS"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+        <insert tableName="c_custom_product_catalog">
+            <column name="code" value="FD"/>
+            <column name="display_name" value="Fixed Deposit"/>
+            <column name="family" value="FIXED_DEPOSIT"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+        <insert tableName="c_custom_product_catalog">
+            <column name="code" value="LTS"/>
+            <column name="display_name" value="Long term Savings"/>
+            <column name="family" value="RECURRING_DEPOSIT"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+        <insert tableName="c_custom_product_catalog">
+            <column name="code" value="GS"/>
+            <column name="display_name" value="Group Savings with Interest"/>
+            <column name="family" value="GROUP_SAVINGS"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+        <insert tableName="c_custom_product_catalog">
+            <column name="code" value="GSL"/>
+            <column name="display_name" value="Group Savings with Loans"/>
+            <column name="family" value="GROUP_SAVINGS_WITH_LOANS"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+
+    <changeSet author="customproducts" id="4" context="custom_changelog">
+        <comment>Add the remaining 5 products from the bundled offering. These reuse existing families; the unique code + marketing_tagline distinguishes them.</comment>
+        <insert tableName="c_custom_product_catalog">
+            <column name="code" value="GSP"/>
+            <column name="display_name" value="Group Savings"/>
+            <column name="family" value="GROUP_SAVINGS"/>
+            <column name="marketing_tagline" value="Plain group savings without interest accrual"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+        <insert tableName="c_custom_product_catalog">
+            <column name="code" value="TGT"/>
+            <column name="display_name" value="Target Savings"/>
+            <column name="family" value="SAVINGS"/>
+            <column name="marketing_tagline" value="Goal-based savings; backed by core SAVINGS engine, goal metadata managed by wrapper"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+        <insert tableName="c_custom_product_catalog">
+            <column name="code" value="GAM"/>
+            <column name="display_name" value="Gamified Savings"/>
+            <column name="family" value="SAVINGS"/>
+            <column name="marketing_tagline" value="Rewards layer over SAVINGS; gamification metadata managed by wrapper"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+        <insert tableName="c_custom_product_catalog">
+            <column name="code" value="CRF"/>
+            <column name="display_name" value="Crowdfunding"/>
+            <column name="family" value="SAVINGS"/>
+            <column name="marketing_tagline" value="Pooled-contribution SAVINGS; campaign metadata managed by wrapper"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+        <insert tableName="c_custom_product_catalog">
+            <column name="code" value="PEN"/>
+            <column name="display_name" value="Pensions (Long term savings)"/>
+            <column name="family" value="RECURRING_DEPOSIT"/>
+            <column name="marketing_tagline" value="Long-horizon RD with vesting metadata managed by wrapper"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
